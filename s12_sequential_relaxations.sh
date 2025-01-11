@@ -19,9 +19,9 @@ cp ./control.in ./jobscript.sh ./02_intermediate/
 cp ./control.in ./jobscript.sh ./03_tight/
 
 # Step 3: Append commands to `jobscript.sh` in `01_light` and `02_intermediate`
-sed -i '/^srun/ s|$| \&\& cp geometry.in.next_step ../02_intermediate/ \&\& mv ../02_intermediate/geometry.in.next_step ../02_intermediate/geometry.in|' ./01_light/jobscript.sh
+sed -i '/^srun/ s|$| \&\& cp geometry.in.next_step hessian.out ../02_intermediate/ \&\& mv ../02_intermediate/geometry.in.next_step ../02_intermediate/geometry.in|' ./01_light/jobscript.sh
 
-sed -i '/^srun/ s|$| \&\& cp geometry.in.next_step ../03_tight/ \&\& mv ../03_tight/geometry.in.next_step ../03_tight/geometry.in|' ./02_intermediate/jobscript.sh
+sed -i '/^srun/ s|$| \&\& cp geometry.in.next_step hessian.out ../03_tight/ \&\& mv ../03_tight/geometry.in.next_step ../03_tight/geometry.in|' ./02_intermediate/jobscript.sh
 
 # Step 4: Run `s01_add_species_defaults.sh` in each directory
 cd 01_light && s01_add_species_defaults.sh light "$@" && cd ..
