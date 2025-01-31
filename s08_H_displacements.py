@@ -52,6 +52,7 @@
 
 import numpy as np
 import argparse
+import math
 
 # Read the geometry from the geometry.in file and break it into parts
 def parse_geometry_file(geometry_file):
@@ -103,7 +104,7 @@ def ensure_all_atoms_in_unit_cell(atomic_coords, lattice_vectors):
                 print(f"Adjusted {atom[4]} atom fractional coordinate {frac_coord} to {frac_atom[i]}")
 
     atom[1:4] = np.dot(lattice_matrix, frac_atom)
-    
+    print("All atoms are in the unit cell")
     return atomic_coords
 
 def calculate_distance_with_mic(atom_1, atom_2, lattice_vectors):
@@ -184,19 +185,26 @@ def calculate_H_displacement_with_mic(initial_geometry, final_geometry, lattice_
             else:
                 print("Error: Wack-ass bond type")
     
+    print(displacements["C-H"])
     with open("H_relaxation_postprocessing.out", 'w') as file:
         file.write("Hydrogen Atom Displacement Data for C-H and N-H Bonds\n")
         
         for bond_type, displacements in displacements.items():
             avg_displacement = np.mean(displacements)
             std_displacement = np.std(displacements)
+
+            rounded_std_displacement = float(f"{std_displacement:.1g}")
+            order = math.floor(math.log10(abs(std_displacement)))  # Order of magnitude of ref
+            factor = 10**order  # Scaling factor
+            rounded_avg_displacement = round(avg_displacement / factor) * factor  # Round and scale back
+
             count = len(displacements)
 
             file.write(f"{bond_type} Bonds: {count}\n")
-            file.write(f"{bond_type} Average Displacement: {avg_displacement:.4f} ± {std_displacement:.4f} Å\n\n")
+            file.write(f"{bond_type} Average Displacement: {rounded_avg_displacement} ± {rounded_std_displacement} Å\n\n")
 
             # Print to console
-            print(f"{bond_type} H atom Displacement (Å) = {avg_displacement:.4f} ± {std_displacement:.4f}")
+            print(f"{bond_type} H atom Displacement (Å) = {rounded_avg_displacement} ± {rounded_std_displacement}")
             print(f"{bond_type} Bonds: {count}\n")
 
         print(f"H atom displacement data written to H_relaxation_postprocessing.out")
@@ -222,13 +230,19 @@ def calculate_bond_length_changes(initial_geometry_cleaned, final_geometry_clean
         for bond_type, differences in bond_length_differences.items():
             avg_difference = np.mean(differences)
             std_difference = np.std(differences)
+            
+            rounded_std_difference = float(f"{std_difference:.1g}")
+            order = math.floor(math.log10(abs(std_difference)))  # Order of magnitude of ref
+            factor = 10**order  # Scaling factor
+            rounded_avg_difference = round(avg_difference / factor) * factor  # Round and scale back
+            
             count = len(differences)
 
             file.write(f"{bond_type} Bonds: {count}\n")
-            file.write(f"{bond_type} Average Length Difference: {avg_difference:.4f} ± {std_difference:.4f} Å\n\n")
+            file.write(f"{bond_type} Average Length Difference: {rounded_avg_difference} ± {rounded_std_difference} Å\n\n")
 
             # Print to console
-            print(f"{bond_type} Length Difference (Å) = {avg_difference:.4f} ± {std_difference:.4f}")
+            print(f"{bond_type} Length Difference (Å) = {rounded_avg_difference} ± {rounded_std_difference}")
             print(f"{bond_type} Bonds: {count}\n")
 
     print(f"Bond length difference data written to H_relaxation_postprocessing.out")

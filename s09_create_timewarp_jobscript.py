@@ -18,7 +18,7 @@ module load FHIaims
 
 # execution
 cd $SLURM_SUBMIT_DIR/
-srun -n $SLURM_NTASKS aims.240828.scalapack.mpi.x > aims.out 2>aims.err
+srun -n $SLURM_NTASKS aims.x > aims.out 2>aims.err
 
 # OR
 # srun -n $SLURM_NTASKS aims.x > aims.out 2>aims.err
