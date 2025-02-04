@@ -1,14 +1,20 @@
-# This script will selectively fix all non-Hydrogen atoms in your geometry.in file by appending "constrain_relaxation .true" in the following line
-
-# A sample 
-
-
-
-#to run this script,
-########################################
-
 #!/bin/bash
+# Script: Add Relaxation Constraints to Geometry File
+# Description: This script processes a `geometry.in` file and adds a relaxation constraint (`constrain_relaxation .true.`) to lines that define atoms, 
+#              except for those ending with "H" (hydrogen).
+#        The script reads from `geometry.in` and writes the modified content back to the same file.
 
+# Example: If `geometry.in` contains:
+#          atom 0.0 0.0 0.0 O
+#          atom 1.0 1.0 1.0 H
+#          The script will append `constrain_relaxation .true.` to the oxygen line but not the hydrogen line.
+
+# Dependencies:
+# - The script assumes the input file (`geometry.in`) exists and is formatted correctly.
+# - The script requires write permissions for `geometry.in` and the directory it resides in.
+
+# Exit Codes:
+# - None explicitly defined, but errors may occur if the input file is missing or permissions are insufficient.
 input_file="geometry.in"
 output_file="geometry.tmp" #if you don't use a .tmp file it will delete all your coordinates when it clears the output file
 
