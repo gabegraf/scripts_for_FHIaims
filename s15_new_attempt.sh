@@ -1,4 +1,13 @@
 #!/bin/bash
+# This script is for documenting all your failures!
+# When you run a calculation in a folder and it doesn't work, you can run this script
+# to automatically put all those files in a folder called 01_attempt and copies the 
+# geometry.in jobscript.sh control.in and any files you provide as arguments into a 
+# new folder called 02_attempt. From there you can make the changes and resubmit.
+
+# If you mess up in i_attempt (where i = 02, 03, 04, ...), running this script inside that attempt
+# directory will make an i+1 attempt directory and copy the files above from the current
+# attempt directory into the i+1 attempt directory. 
 
 # List of mandatory files to copy
 mandatory_files=("control.in" "geometry.in" "jobscript.sh")
