@@ -1,4 +1,20 @@
 #!/bin/bash
+# Script: Append Species Defaults to control.in
+# Description: This script appends species-specific default data to a `control.in` file based on the provided tightness level and species symbols. 
+#              It validates the tightness level and species symbols, looks up the corresponding atomic numbers, and appends the relevant data from predefined files.
+# Usage: ./s01_add_species_defaults <tightness> <species symbols...>
+#        <tightness>: One of "light", "intermediate", "tight", or "really_tight".
+#        <species symbols...>: One or more valid chemical symbols (e.g., H, He, C, O).
+
+# Example: ./s01_add_species_defaults tight H O C
+#          This appends the default data for Hydrogen (H), Oxygen (O), and Carbon (C) using the "tight" tightness level.
+
+# Dependencies:
+# - The script assumes the existence of a directory structure: $SPECIES_DEFAULTS/defaults_2020/<tightness>/<atomic_number>_<species>_default.
+# - The `control.in` file must be writable by the script.
+
+# Exit Codes:
+# - 1: Invalid number of arguments, invalid tightness level, or unknown species symbol.
 
 # Check that at least two arguments are provided
 if [ "$#" -lt 2 ]; then
