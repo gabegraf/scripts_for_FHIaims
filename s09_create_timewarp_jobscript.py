@@ -1,13 +1,17 @@
 #!/usr/bin/env python
+# Running this script will create a sample jobscript for SLURM 
+# submission on Timewarp in the working directory. Please make 
+# sure all the SBATCH settings are as you want them.
+
 filename = "jobscript.sh"
 
 # Define the content of the job script
 job_script_content = """#!/bin/bash
-#SBATCH --job-name=r2MFSA_PbI_12_298K_red_h_relaxation
-#SBATCH -N 4
-#SBATCH --ntasks-per-node=4
+#SBATCH --job-name=Forgot_to_write_a_name
+#SBATCH -N 6
+#SBATCH --ntasks-per-node=20
 #SBATCH --cpus-per-task=2
-#SBATCH -p small
+#SBATCH -p long
 #SBATCH -t 30:00:00
 
 # initialization
