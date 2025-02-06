@@ -1,4 +1,22 @@
 #!/usr/bin/env bash
+# This file is for setting up a series of relaxations for a specific material.
+# The idea is to first relax with light settings, then intermediate, and then tight.
+#
+# To run this script you need to pass the species symbols as arguments, ie.
+#
+# s12_sequential_relaxations C H N Br Pb I
+# 
+# Additionally, you must have a jobscript.sh, a control.in, and a geometry.in in the
+# working directory. The script will then make three sub-directories, called "01_light", 
+# "02_intermediate", and "03_tight". It will move your files into the "01_light" directory
+# and automatically append species defaults to your control.in. You must verify everything
+# and then submit the job. After the job finishes, it should move your geometry.in.next_step
+# and hessian.aims into the 02_intermediate folder automatically. The intermediate species
+# defaults should already be added to your control.in here. This same process will happen
+# after your job in the "02_intermediate" directory finishes.
+#
+# Currently, the script should not move your files into the next directory if the calculation
+# failed. However, I would recommend checking this every time you do this.
 
 # Check if no arguments are provided
 if [ $# -eq 0 ]; then
