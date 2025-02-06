@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# I use this script when doing configurational selections on disordered structures.
+# The idea is that you run each possible disordered configuration in a separate sub
+# directory, and then this script reads through all the aims.out files from the
+# subdirectories and tells you which disordered structure converged to the lowest
+# energy. Ideally, this means that it is your most stable structure out of all the 
+# possible structures, and you can continue work on it.
 
 import os
 import re
