@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# Running this script will create a sample jobscript for SLURM 
+# submission on Kestrel in the working directory. Please make 
+# sure all the SBATCH settings are as you want them.
+
 filename = "jobscript.sh"
 
 # Define the content of the job script

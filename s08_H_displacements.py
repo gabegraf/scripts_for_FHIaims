@@ -31,7 +31,7 @@
 # 
 # This script uses the minimum image convention (MIC) to treat the 
 # periodic boundary conditions of the system. The mathematics are
-# discussed in the script body.
+# (hopefully soon to be) discussed in the script body.
 
 ####################################################################
 
@@ -42,10 +42,9 @@
 # significantly slower and I ran into some problems with hydrogens
 # moving through the unit cell walls (even though this should not 
 # be a problem). I then found the issue with this MIC script,
-# (I needed to transpose the lattice vector matrix),
 # and therefore, continued the development of this one. The supercell
 # method and the MIC method seem to agree on systems that the
-# supercell method performs well on. As such, the MIC method (which
+# supercell method can work on. As such, the MIC method (which
 # is faster and not restricted) is the only one present here.
 
 ####################################################################
@@ -109,6 +108,8 @@ def ensure_all_atoms_in_unit_cell(atomic_coords, lattice_vectors):
 
 def calculate_distance_with_mic(atom_1, atom_2, lattice_vectors):
 
+    # This is where I will discuss the MIC method hopefully soon.
+    
     lattice_matrix = (np.array(lattice_vectors, dtype=np.float64)).T
     inv_lattice_matrix = np.linalg.inv(lattice_matrix)
 

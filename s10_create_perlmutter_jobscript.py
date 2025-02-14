@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+# Running this script will create a sample jobscript for SLURM 
+# submission on Perlmutter in the working directory. Please make 
+# sure all the SBATCH settings are as you want them.
+
 filename = "jobscript.sh"
 
 # Define the content of the job script
 job_script_content = """#!/bin/bash
-#SBATCH -J 10_structure_optimization
+#SBATCH -J forgot_to_name
 #SBATCH -A m3337
 #SBATCH -C cpu
 #SBATCH -q regular
