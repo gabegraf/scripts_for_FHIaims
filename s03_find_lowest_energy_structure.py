@@ -14,7 +14,7 @@ energies = {}
 
 # Loop over each subdirectory
 for n in range(1, 17):
-    sub_dir = f"{n}_structure_light_relax"
+    sub_dir = f"{n}_structure_light_DFT"
     aims_out_path = os.path.join(root_dir, sub_dir, "aims.out")
     
     if os.path.isfile(aims_out_path):
