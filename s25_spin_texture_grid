@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+import argparse
+import sys
+
+def generate_mesh_grid(plane, density_rows, density_points):
+    """Generate a 2D mesh grid in 3D momentum space based on plane and density."""
+    # Validate plane
+    valid_planes = ['xy', 'yz', 'xz']
+    if plane not in valid_planes:
+        print(f"Error: --plane must be one of {valid_planes}", file=sys.stderr)
+        sys.exit(1)
+
+    # Validate densities
+    if not isinstance(density_rows, int) or density_rows <= 0:
+        print("Error: --density-rows must be a positive integer", file=sys.stderr)
+        sys.exit(1)
+    if not isinstance(density_points, int) or density_points <= 0:
+        print("Error: --density-points must be a positive integer", file=sys.stderr)
+        sys.exit(1)
+
+    # Step size is 1/density over the range -0.5 to 0.5 (range length = 1)
+    step_rows = 1.0 / (density_rows -1)
+    step_points = 1.0 / density_points
+
+    # Define labels based on plane
+    labels = {'xy': ('-X', 'X'), 'yz': ('-Y', 'Y'), 'xz': ('-X', 'X')}
+    start_label, end_label = labels[plane]
+
+    # Generate rows
+    for i in range(density_rows):
+        # Base coordinates for start and end points
+        kx_start, ky_start, kz_start = -0.5, -0.5, 0
+        kx_end, ky_end, kz_end = 0.5, -0.5, 0
+
+        # Adjust coordinates based on plane and row index
+        if plane == 'xy':
+            ky_start = round(-0.5 + i * step_rows,10)
+            ky_end = ky_start
+            kz_start = kz_end = 0
+        elif plane == 'yz':
+            kx_start = kx_end = 0
+            kz_start = round(-0.5 + i * step_rows,10)
+            kz_end = kz_start
+        elif plane == 'xz':
+            ky_start = ky_end = 0
+            kz_start = round(-0.5 + i * step_rows,10)
+            kz_end = kz_start
+
+        # Output the row in the specified format
+        print(f"output band_mulliken {kx_start} {ky_start} {kz_start} "
+              f"{kx_end} {ky_end} {kz_end} {density_points} {start_label} {end_label}")
+
+def main():
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Generate a 2D mesh grid in 3D momentum space.")
+    parser.add_argument('--plane', required=True, choices=['xy', 'yz', 'xz'],
+                        help="Plane of the grid (xy, yz, or xz)")
+    parser.add_argument('--density-rows', required=True, type=int,
+                        help="Number of rows in the grid")
+    parser.add_argument('--density-points', type=int,
+                        help="Number of points per band (defaults to density-rows)")
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # If density-points is not provided, default to density-rows
+    density_points = args.density_points if args.density_points is not None else args.density_rows
+
+    # Generate the grid
+    generate_mesh_grid(args.plane, args.density_rows, density_points)
+
+if __name__ == "__main__":
+    main()                   
