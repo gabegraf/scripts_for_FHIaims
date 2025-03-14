@@ -26,7 +26,7 @@ ulimit -s unlimited
 # Load the working intel tuning file
 export I_MPI_TUNING_BIN=/opt/intel/oneapi/mpi/2021.6.0/etc/tuning_generic_shm-ofi_mlx_hcoll.dat
 
-srun -n ${SLURM_NTASKS} ~/FHIaims/build/aims.250131.scalapack.mpi.x > aims.out
+srun -n ${SLURM_NTASKS} ~/FHIaims/build/aims.250312.scalapack.mpi.x > aims.out
 """
 
 # Write the content to the file
