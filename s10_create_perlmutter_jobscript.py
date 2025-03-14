@@ -20,15 +20,11 @@ job_script_content = """#!/bin/bash
 #SBATCH --mail-user=gabriel.graf@duke.edu
 
 module load PrgEnv-intel
-
-source /opt/intel/oneapi/setvars.sh > /dev/null
+module load intel/2023.2.0
 ulimit -s unlimited
 
 # Load the working intel tuning file
 export I_MPI_TUNING_BIN=/opt/intel/oneapi/mpi/2021.6.0/etc/tuning_generic_shm-ofi_mlx_hcoll.dat
-
-# Need library for srun to function
-export I_MPI_PMI_LIBRARY=/usr/lib/shifter/mpich-2.2/dep/libpmi.so.0
 
 srun -n ${SLURM_NTASKS} ~/FHIaims/build/aims.250131.scalapack.mpi.x > aims.out
 """
