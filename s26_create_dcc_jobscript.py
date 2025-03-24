@@ -6,8 +6,7 @@
 filename = "jobscript.sh"
 
 # Define the content of the job script
-job_script_content = """
-#!/bin/bash
+job_script_content = """#!/bin/bash
 #SBATCH -p scavenger
 #SBATCH --nodelist=dcc-courses-[1-50]
 #SBATCH -N 2
