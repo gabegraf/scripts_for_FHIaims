@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Find all directories ending with '-displacement' and sort them
-for dir in $(find . -type d -name "*-displacement" | sort); do
+for dir in $(find . -type d | sort); do
 
     # Define the path to aims.out
     aims_out="$dir/aims.out"
