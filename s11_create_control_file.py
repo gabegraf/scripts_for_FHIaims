@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # THis file creates a sample control.in file which can be tailored
-# for specificic calculations. 
+# for specificic calculations. The general script is for a 
+# generic geometry relaxation procedure
 # 
 # IMPORTANT: DO NOT RUN THE SAMPLE SCRIPT BLINDLY!
 #
@@ -17,7 +18,7 @@ filename = "control.in"
 job_script_content = """  xc                 pbe
   spin               none
   relativistic       atomic_zora scalar
-  vdw_correction_hirshfeld
+  vdw_correction_hirshfeld_alkali
 
 #Large calculation
   use_local_index .true.
@@ -25,12 +26,9 @@ job_script_content = """  xc                 pbe
 # k-grid settings
   k_grid
 
-# relaxation
-   # relax_geometry bfgs 5E-3
-   # relax_unit_cell none
-   # write_restart_geometry .true.
-
-   # computes_forces .true.
+   relax_geometry bfgs 5E-3
+   relax_unit_cell none
+   write_restart_geometry .true.
 """
 
 # Write the content to the file
