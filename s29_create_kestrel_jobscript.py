@@ -3,11 +3,16 @@
 # submission on Timewarp in the working directory. Please make 
 # sure all the SBATCH settings are as you want them.
 
+import os
+
 filename = "jobscript.sh"
 
-# Define the content of the job script
-job_script_content = """#!/bin/bash
-#SBATCH -J forgot_to_name 
+# Get the current directory name to use as the job name
+job_name = os.path.basename(os.getcwd())
+
+# Define the content of the job script with dynamic job name
+job_script_content = f"""#!/bin/bash
+#SBATCH -J {job_name}
 #SBATCH --ntasks-per-node=52
 #SBATCH --nodes=2
 #SBATCH --time=3:00:00
@@ -30,5 +35,6 @@ srun -n 104 ~/software/FHIaims/build/aims.250320.scalapack.mpi.x > aims.out 2> a
 with open(filename, "w") as file:
     file.write(job_script_content)
 
-print(f"Job script written to {filename}")
+print(f"Job script written to {filename} with job name: {job_name}")
+
 
