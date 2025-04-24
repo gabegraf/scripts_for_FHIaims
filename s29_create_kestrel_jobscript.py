@@ -7,8 +7,14 @@ import os
 
 filename = "jobscript.sh"
 
-# Get the current directory name to use as the job name
-job_name = os.path.basename(os.getcwd())
+# Get the current path and split into components
+path_parts = os.path.abspath(os.getcwd()).split(os.sep)
+
+# Safely get the last 3 directory names
+if len(path_parts) >= 3:
+    job_name = "_".join(path_parts[-3:])
+else:
+    job_name = "_".join(path_parts)
 
 # Define the content of the job script with dynamic job name
 job_script_content = f"""#!/bin/bash
