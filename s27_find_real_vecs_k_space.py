@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import math
 from sympy import *
 import os.path
@@ -162,4 +163,8 @@ def generate(filename, target, lattice_defined=True, debug=False, mag=0):
 
 base = "."
 f = base + "/geometry.in"
+generate(f, [1, 0, 0], lattice_defined=True, debug=False)
 generate(f, [0, 1, 0], lattice_defined=True, debug=False)
+generate(f, [1, 1, 0], lattice_defined=True, debug=False)
+generate(f, [-1, 1, 0], lattice_defined=True, debug=False)
+generate(f, [0, 0, 1], lattice_defined=True, debug=False)

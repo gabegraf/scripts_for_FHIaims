@@ -9,83 +9,59 @@
 # directory will make an i+1 attempt directory and copy the files above from the current
 # attempt directory into the i+1 attempt directory. 
 
+#!/bin/bash
+
 # List of mandatory files to copy
 mandatory_files=("control.in" "geometry.in" "jobscript.sh")
 
 # Check if *_attempt folder exists in the parent directory
 highest_attempt=$(ls -d ../*_attempt 2>/dev/null | sort -V | tail -n 1)
 
-# If no *_attempt folder exists, create 01_attempt in the current directory and move files there
+# If no *_attempt folder exists, create 01_attempt and move files/folders there
 if [ -z "$highest_attempt" ]; then
     new_dir="01_attempt"
     mkdir "$new_dir"
     echo "Created $new_dir in the current directory"
-    
-    # Move all files from the current directory to 01_attempt
+
+    # Move all files and directories except this script into 01_attempt
     for file in *; do
-        if [ -f "$file" ] && [ "$file" != "$0" ]; then
+        if [ "$file" != "$0" ]; then
             mv "$file" "$new_dir"
             echo "Moved $file to $new_dir"
         fi
     done
 
-    # After moving files to 01_attempt, create 02_attempt in the current directory
+    # Create 02_attempt and copy mandatory files + args (no folders)
     next_dir="02_attempt"
     mkdir "$next_dir"
     echo "Created $next_dir in the current directory"
-    
-    # Copy mandatory files and any argument files from 01_attempt to 02_attempt
+
     for file in "${mandatory_files[@]}"; do
-        if [ -f "$new_dir/$file" ]; then
-            cp "$new_dir/$file" "$next_dir"
-            echo "Copied $file from $new_dir to $next_dir"
-        else
-            echo "$file not found in $new_dir, skipping."
-        fi
+        [ -f "$new_dir/$file" ] && cp "$new_dir/$file" "$next_dir" && echo "Copied $file from $new_dir to $next_dir"
     done
 
-    # Copy argument files (non-mandatory) to 02_attempt
     for file in "$@"; do
-        if [ -f "$new_dir/$file" ]; then
-            cp "$new_dir/$file" "$next_dir"
-            echo "Copied $file from $new_dir to $next_dir"
-        else
-            echo "$file not found in $new_dir, skipping."
-        fi
+        [ -f "$new_dir/$file" ] && cp "$new_dir/$file" "$next_dir" && echo "Copied $file from $new_dir to $next_dir"
     done
 
 else
-    # Go up one directory
     cd ..
 
-    # Extract the numeric part of the highest attempt folder and increment by 1 with leading zero
     base_num=$(echo "$highest_attempt" | grep -oE '[0-9]+' | tail -n 1)
     next_num=$((base_num + 1))
-    new_dir=$(printf "%02d_attempt" $next_num)  # Use leading zero for single-digit numbers
+    new_dir=$(printf "%02d_attempt" $next_num)
     mkdir "$new_dir"
     echo "Created $new_dir in the parent directory"
 
-    # Now copy mandatory files and argument files from the previous attempt folder
     prev_dir=$(printf "%02d_attempt" $base_num)
+
     for file in "${mandatory_files[@]}"; do
-        if [ -f "$prev_dir/$file" ]; then
-            cp "$prev_dir/$file" "$new_dir"
-            echo "Copied $file from $prev_dir to $new_dir"
-        else
-            echo "$file not found in $prev_dir, skipping."
-        fi
+        [ -f "$prev_dir/$file" ] && cp "$prev_dir/$file" "$new_dir" && echo "Copied $file from $prev_dir to $new_dir"
     done
 
-    # Copy argument files (non-mandatory) from the previous attempt folder
     for file in "$@"; do
-        if [ -f "$prev_dir/$file" ]; then
-            cp "$prev_dir/$file" "$new_dir"
-            echo "Copied $file from $prev_dir to $new_dir"
-        else
-            echo "$file not found in $prev_dir, skipping."
-        fi
+        [ -f "$prev_dir/$file" ] && cp "$prev_dir/$file" "$new_dir" && echo "Copied $file from $prev_dir to $new_dir"
     done
 fi
 
-# Ensure the new directory is populated as requested
 echo "Files copied to $new_dir"
