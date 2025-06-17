@@ -24,7 +24,6 @@ for file in $(ls geometry.in-* | sort -V); do
 
     # Skip submission if --no-sub is set
     if $no_sub; then
-        echo "Skipping submission for $folder (--no-sub flag set)"
         continue
     fi
 
