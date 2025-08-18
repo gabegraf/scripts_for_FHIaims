@@ -34,7 +34,7 @@ module load intel-oneapi-mkl
 module load intel-oneapi-mpi
 cd $SLURM_SUBMIT_DIR
 
-srun -n 104 ~/software/FHIaims/build/aims.250320.scalapack.mpi.x > aims.out 2> aims.err
+srun -n 104 ~/software/FHIaims/build/aims.x > aims.out 2> aims.err
 """
 
 # Write the content to the file
