@@ -1,22 +1,41 @@
 #!/bin/bash
 
-# Find all directories ending with '-displacement' and sort them
+# Default: print everything
+error_only=false
+
+# Parse flags
+while getopts "e" opt; do
+  case $opt in
+    e) error_only=true ;;
+    *) echo "Usage: $0 [-e]"; exit 1 ;;
+  esac
+done
+
+# Find all directories and sort them
 for dir in $(find . -type d | sort); do
 
-    # Define the path to aims.out
     aims_out="$dir/aims.out"
 
-    # Check if aims.out exists in the directory
     if [[ -f "$aims_out" ]]; then
-
-        # Check if "Have a nice day" exists in the file
         if grep -q "Have a nice day" "$aims_out"; then
-            echo "Success: 'Have a nice day' found in $aims_out"
+            # Only print on success if not in error-only mode
+            if ! $error_only; then
+                echo "Success: 'Have a nice day' found in $aims_out"
+            fi
         else
-            echo "$dir"  # Print directory name if phrase is not found
+            # Print directories missing the phrase
+            if ! $error_only; then
+                echo "$dir"
+            fi
         fi
     else
-        echo "Error: $aims_out does not exist"
+        # Print only if -e flag is active, or always otherwise
+        if $error_only; then
+            echo "$dir"
+        else
+            echo "Error: $aims_out does not exist"
+        fi
     fi
 done
+
 
