@@ -595,13 +595,13 @@ def main():
 
     # Diagonalize hessian (scipy)
     print('Solving eigenvalue system for Hessian Matrix')
-    freq, eig_vec = eigh(hessian)
+    eig_val, eig_vec = eigh(hessian)
 
     print('Eigen vectors input file       = '+eigenvectors)
     np.savetxt(normalized,hessian)
 
 
-    eig_vec=eig_vec[:,argsort(freq)]  # sort in ascending order in colums
+    eig_vec=eig_vec[:,argsort(eig_val)]  # sort in ascending order in colums
     np.savetxt(eigenvectors,eig_vec)  # Qij
     # Finding Cartesian eigen vectors X=M^-1/2Q
     eig_vec_car = eig_vec*mass_vector[:,np.newaxis]*np.ones(len(mass_vector))[np.newaxis,:]
@@ -610,7 +610,7 @@ def main():
     M=mass_vector[:,np.newaxis]*np.identity(len(mass_vector))[np.newaxis,:]
     np.savetxt(mass_vec,M.reshape((n_constrained*3,-1)), fmt="%s")
     # From hessian_factor freq is in SI units
-    freq=sort(sign(freq)*np.sqrt(abs(freq)))
+    freq=sort(sign(eig_val)*np.sqrt(abs(eig_val)))
     #ZPE (eV) half the vibrational frequency
     ZPE=hbar*(freq)/(2.0*eV)
     # Finding frrquency in cm-1:
