@@ -26,7 +26,7 @@ def natural_sort_key(text):
     return 0
 
 
-def process_aims_file(file_path, cycles_list, reinit_list, times_list):
+def process_aims_file(file_path, cycles_list, reinit_list, cpu_times_list, wall_times_list):
     """
     Process a single aims.out file to extract required values.
     
@@ -70,10 +70,12 @@ def process_aims_file(file_path, cycles_list, reinit_list, times_list):
         
         # Search for total time (if not found yet)
         if not found_time:
-            time_match = re.search(r'\|\s*Total time\s*:\s*(\d+\.\d+)\s*s\s*\d+\.\d+\s*s', line)
+            time_match = re.search(r'\|\s*Total time\s*:\s*(\d+\.\d+)\s*s\s*(\d+\.\d+)\s*s', line)
             if time_match:
                 cpu_time = float(time_match.group(1))
-                times_list.append(cpu_time)
+                wall_time = float(time_match.group(2))
+                cpu_times_list.append(cpu_time)
+                wall_times_list.append(wall_time)
                 found_time = True
         
         # If all values found, break early
@@ -96,6 +98,7 @@ def main():
     self_consistency_cycles = []
     scf_reinitializations = []
     cpu_times = []
+    wall_times = []
     processed_files_count = 0
     error_count = 0
     
@@ -120,7 +123,7 @@ def main():
         
         # Try to process the file
         try:
-            process_aims_file(aims_file_path, self_consistency_cycles, scf_reinitializations, cpu_times)
+            process_aims_file(aims_file_path, self_consistency_cycles, scf_reinitializations, cpu_times, wall_times)
             processed_files_count += 1
             print(f"Successfully processed: {directory}")
         except Exception as e:
@@ -146,10 +149,16 @@ def main():
     reinit_stdev = statistics.stdev(scf_reinitializations) if len(scf_reinitializations) > 1 else 0
     
     # Calculate statistics for CPU times
-    time_mean = statistics.mean(cpu_times)
-    time_stdev = statistics.stdev(cpu_times) if len(cpu_times) > 1 else 0
-    total_time_seconds = sum(cpu_times)
-    total_time_minutes = total_time_seconds / 60
+    cpu_time_mean = statistics.mean(cpu_times)
+    cpu_time_stdev = statistics.stdev(cpu_times) if len(cpu_times) > 1 else 0
+    total_cpu_time_seconds = sum(cpu_times)
+    total_cpu_time_hours = total_cpu_time_seconds / 3600
+
+    # Same for wall clock times
+    wall_time_mean = statistics.mean(wall_times)
+    wall_time_stdev = statistics.stdev(wall_times) if len(wall_times) > 1 else 0
+    total_wall_time_seconds = sum(wall_times)
+    total_wall_time_hours = total_wall_time_seconds / 3600
     
     # Output results to console
     print("\n" + "="*60)
@@ -165,9 +174,14 @@ def main():
     print(f"  Standard Deviation: {reinit_stdev:.2f}")
     
     print(f"\nCPU Times:")
-    print(f"  Average: {time_mean:.2f} seconds")
-    print(f"  Standard Deviation: {time_stdev:.2f} seconds")
-    print(f"  Total Time: {total_time_seconds:.2f} seconds ({total_time_minutes:.2f} minutes)")
+    print(f"  Average: {cpu_time_mean:.2f} seconds")
+    print(f"  Standard Deviation: {cpu_time_stdev:.2f} seconds")
+    print(f"  Total CPU Time: {total_cpu_time_seconds:.2f} seconds ({total_cpu_time_hours:.2f} hours)")
+    
+    print(f"\nWall Times:")
+    print(f"  Average: {wall_time_mean:.2f} seconds")
+    print(f"  Standard Deviation: {wall_time_stdev:.2f} seconds")
+    print(f"  Total Wall Time: {total_wall_time_seconds:.2f} seconds ({total_wall_time_hours:.2f} hours)")
     
     # Save results to file
     output_filename = "aims_analysis_results.txt"
@@ -192,9 +206,14 @@ def main():
             output_file.write(f"  Standard Deviation: {reinit_stdev:.2f}\n\n")
             
             output_file.write("CPU Times:\n")
-            output_file.write(f"  Average: {time_mean:.2f} seconds\n")
-            output_file.write(f"  Standard Deviation: {time_stdev:.2f} seconds\n")
-            output_file.write(f"  Total Time: {total_time_seconds:.2f} seconds ({total_time_minutes:.2f} minutes)\n")
+            output_file.write(f"  Average: {cpu_time_mean:.2f} seconds\n")
+            output_file.write(f"  Standard Deviation: {cpu_time_stdev:.2f} seconds\n")
+            output_file.write(f"  Total Time: {total_cpu_time_seconds:.2f} seconds ({total_cpu_time_hours:.2f} hours)\n")
+
+            output_file.write("Wall Times:\n")
+            output_file.write(f"  Average: {wall_time_mean:.2f} seconds\n")
+            output_file.write(f"  Standard Deviation: {wall_time_stdev:.2f} seconds\n")
+            output_file.write(f"  Total Time: {total_wall_time_seconds:.2f} seconds ({total_wall_time_hours:.2f} hours)\n")
         
         print(f"\nResults saved to: {output_filename}")
         
