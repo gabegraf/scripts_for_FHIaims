@@ -1,0 +1,30 @@
+from ase.io import read,write
+from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.analysis.local_env import NearNeighbors
+from pymatgen.analysis.local_env import CrystalNN
+import click
+@click.command
+@click.argument('filename', default="geometry.in", type=click.Path(exists=True))
+@click.argument('filename_out', default="new_geometry.in", type=click.Path())
+@click.argument('atom_to_sub', type=str)
+@click.argument('bonded_atom', type=str)
+@click.argument('new_atom', type=str)
+def substitute_atoms(filename, filename_out, atom_to_sub, bonded_atom, new_atom):
+  atoms = read(filename, format='aims')
+  structure = AseAtomsAdaptor.get_structure(atoms)
+  neighbor_finder = CrystalNN()
+  for i, atom in enumerate(structure):
+    site_species = atom.species
+    if atom_to_sub in site_species:
+      neighbors = neighbor_finder.get_nn_info(structure, i)
+      print(neighbors)
+      for d in neighbors:
+        if f"{bonded_atom}" in str(d["site"]):
+          continue
+        else:
+           structure.replace(i, f"{new_atom}")
+  atoms2 = AseAtomsAdaptor.get_atoms(structure)
+  write(filename_out, atoms2, format='aims')
+
+if __name__ == '__main__':
+  substitute_atoms()
