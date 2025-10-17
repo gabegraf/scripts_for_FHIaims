@@ -7,7 +7,7 @@ import click
 @click.command()
 @click.argument("state", type=int)
 @click.option("--uniform-arrows", is_flag=True, help="If set, scale all arrows to have the same length.")
-@click.option("--scale-factor", default=4.0, type=float, help="Scaling divisor for arrow length.")
+@click.option("--scale-factor", default=50.0, type=float, help="Scaling divisor for arrow length.")
 @click.option("--no-border-arrows", is_flag=True, help="If set, removes arrows that start on the plot borders.")
 def main(state, uniform_arrows, scale_factor, no_border_arrows): 
 	# Load and filter data
@@ -42,7 +42,7 @@ def main(state, uniform_arrows, scale_factor, no_border_arrows):
 
     # Plot
     plt.figure(figsize=(8, 6))
-    plt.contourf(grid_x, grid_y, grid_z, levels=100, cmap='coolwarm')  # blue to red
+    plt.contourf(grid_x, grid_y, grid_z, levels=100, cmap='coolwarm', vmin=-1, vmax=1)  # blue to red
     plt.colorbar(label=r'$\sigma_{z}$ magnitude')
     if uniform_arrows:
         # Normalize each vector to unit length
