@@ -1,0 +1,220 @@
+import re
+import numpy as np
+import os
+from ase.io import read, write
+from pymatgen.io.ase import AseAtomsAdaptor
+
+
+def get_species(geometry_file):
+    atoms = read(geometry_file, format="aims")
+    structure = AseAtomsAdaptor.get_structure(atoms)
+    atom_species = [x.symbol for x in structure.species]
+    unique_species = [x.symbol for x in structure.elements]
+    print(f"Species retrieved from {geometry_file}!")
+    return atom_species, unique_species
+
+
+def cartesian_k_point(frac_k_point, geometry_file):
+    atoms = read("geometry.in", format="aims")
+    structure = AseAtomsAdaptor.get_structure(atoms)
+    k_matrix = structure.lattice.reciprocal_lattice.matrix.T
+    cartesian_k_point = k_matrix @ frac_k_point
+    return cartesian_k_point
+
+
+def process_state(k_idx, k_vec, state, lines, atom_species, unique_species):
+    """Convert buffered lines for one state into a BandPoint"""
+    species_contributions = {key: 0.0 for key in unique_species}
+
+    # Energy and occupation from the first line
+    first_parts = lines[0].split()
+    energy = float(first_parts[1])
+    occupancy = float(first_parts[2])  # optional
+
+    # Sum contributions from all atom lines
+    for line in lines:
+        parts = line.split()
+        if len(parts) < 6:
+            raise ValueError("WAJAHAAAAAAAhAUAH")
+        atom_index = int(parts[3]) - 1
+        species = atom_species[atom_index]
+        contrib = float(parts[5])
+        species_contributions[species] += contrib
+
+    return BandPoint(k_idx, k_vec, state, species_contributions, energy, occupancy)
+
+
+def read_mlk(mlk_filename, geometry_filename):
+    atom_species, unique_species = get_species(geometry_filename)
+    bandpoints = []
+    k_vec = None
+    state = None
+    lines_buffer = []
+
+    with open(mlk_filename, "r") as f:
+        for line in f:
+            line = line.strip()
+
+            # Detect k-point
+            k_match = re.match(
+                r"k point number:\s*(\d+):\s*\(\s*([-\d\.Ee+]+)\s+([-\d\.Ee+]+)\s+([-\d\.Ee+]+)\s*\)",
+                line,
+            )
+            if k_match:
+                # If there’s a buffered state, process it
+                if state is not None:
+                    bandpoints.append(
+                        process_state(
+                            k_idx,
+                            k_vec,
+                            state,
+                            lines_buffer,
+                            atom_species,
+                            unique_species,
+                        )
+                    )
+                    state = None
+                    lines_buffer = []
+                k_idx = int(k_match.group(1))
+                k_vec = np.array([float(x) for x in k_match.groups()[1:]])
+                continue
+
+            # Detect new state
+            state_match = re.match(r"State\s+(\d+)", line)
+            if state_match:
+                # Process previous state
+                if state is not None:
+                    bandpoints.append(
+                        process_state(
+                            k_idx,
+                            k_vec,
+                            state,
+                            lines_buffer,
+                            atom_species,
+                            unique_species,
+                        )
+                    )
+                state = int(state_match.group(1))
+                lines_buffer = []
+                continue
+
+            # Collect lines for the current state
+            if state is not None:
+                lines_buffer.append(line)
+
+    # Process last buffered state
+    if state is not None:
+        bandpoints.append(
+            process_state(
+                k_idx, k_vec, state, lines_buffer, atom_species, unique_species
+            )
+        )
+
+    return bandpoints
+
+def band_builder(bandpoints):
+    bands = []
+    for bp in bandpoints:
+        if bp.state not in [b.state for b in bands]:
+            bands.append(Band.from_bandpoints(bp.state, bandpoints))
+    return bands
+
+
+class BandPoint:
+    def __init__(self, k_idx, kpoint, state, species_contributions, energy, occupancy):
+        self.k_idx = int(k_idx)
+        self.kpoint = np.array(kpoint, dtype=float)
+        self.kpoint_cartesian = cartesian_k_point(self.kpoint, "geometry.in")
+        self.state = int(state)
+        self.species_contributions = dict(species_contributions)
+        self.energy = float(energy)
+        self.occupancy = float(occupancy)
+
+
+class Band:
+  def __init__(self, state, bandpoints):
+    self.state = int(state)
+    self.bandpoints = list(bandpoints)
+    self.n_points = len(self.bandpoints)
+    self.k_bounds = (next(bp.kpoint for bp in self.bandpoints if bp.k_idx == 1), next(bp.kpoint for bp in self.bandpoints if bp.k_idx == self.n_points))
+    # self.energy_bounds = (min(bp.energy for bp in self.bandpoints), max(bp.energy for bp in self.bandpoints))
+    self.k_points = [bp.kpoint for bp in self.bandpoints]
+    self.energies = [bp.energy for bp in self.bandpoints]
+    self.occupancy = [bp.occupancy for bp in self.bandpoints]
+    if all(o == self.occupancy[0] for o in self.occupancy):
+      self.occupancy = self.occupancy[0]
+    self.k_points_cartesian = [bp.kpoint_cartesian for bp in self.bandpoints]
+    self.k_bounds_cartesian = (next(bp.kpoint_cartesian for bp in self.bandpoints if bp.k_idx == 1), next(bp.kpoint_cartesian for bp in self.bandpoints if bp.k_idx == self.n_points))
+
+  @classmethod
+  def from_bandpoints(cls, state, bandpoints):
+    return cls(state, [bp for bp in bandpoints if bp.state == state])
+
+  def build_spline(self):
+    from scipy.interpolate import CubicSpline
+    import numpy as np
+    distances = np.linalg.norm(np.diff(self.k_points_cartesian, axis=0), axis=1)
+    spline_points = np.concatenate(([0], np.cumsum(distances)))
+    self.spline = CubicSpline(spline_points, self.energies)
+    return self.spline
+
+  def plot_spline(self):
+    import matplotlib.pyplot as plt
+    plt.plot(self.spline.x, self.spline(self.spline.x))
+    plt.show()
+
+  def emax_emin(self):
+    import numpy as np
+    crit_points = list(self.spline.derivative().roots())
+    crit_points = [self.spline.x[0]] + crit_points + [self.spline.x[-1]]
+    crit_energies = [self.spline(cp) for cp in crit_points]
+    i_max = int(np.argmax(crit_energies))
+    i_min = int(np.argmin(crit_energies))
+    self.emax = float(crit_energies[i_max])
+    self.emin = float(crit_energies[i_min])
+    self.k_max = float(crit_points[i_max])
+    self.k_min = float(crit_points[i_min])
+
+    return {
+        "E_max": self.emax,
+        "E_min": self.emin,
+        "k_max": self.k_max,
+        "k_min": self.k_min,
+    }
+
+
+class BandSet:
+  def __init__(self, bands):
+    self.bands = list(bands)
+    self.states = [b.state for b in self.bands]
+    self.valence_band_state = max(b.state for b in self.bands if b.occupancy == 1)
+    self.conduction_band_state = min(b.state for b in self.bands if b.occupancy == 0)
+    #self.k_bounds = (min(b.k_bounds[0] for b in self.bands), max(b.k_bounds[1] for b in self.bands)) #this is slower than necessary
+
+  @classmethod
+  def from_bands(cls, bands):
+    return cls(bands)
+  
+def find_curvature_of_species_dominated_bands(bandset, species):
+    results = {}
+    for band in bandset.bands:
+        dominant_species = max(band.bandpoints[0].species_contributions, key=lambda s: band.bandpoints[0].species_contributions[s])
+        if dominant_species == species:
+            spline = band.build_spline()
+            curvature = spline.derivative(nu=2)
+            results[band.state] = curvature
+    #find state with highest curvature at k=0
+    max_curvature_state = max(results, key=lambda s: curvature(0))
+    results = {max_curvature_state: results[max_curvature_state]}
+    return results
+
+
+if __name__ == "__main__":
+    bandpoints = read_mlk("bandmlk1001.out", "geometry.in")
+    bands = band_builder(bandpoints)
+    bandset = BandSet.from_bands(bands)
+    curvature_results = find_curvature_of_species_dominated_bands(bandset, "Er")
+    for state, curvature in curvature_results.items():
+        print(f"State {state} has curvature function: {curvature}")
+    
+
