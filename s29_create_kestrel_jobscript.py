@@ -22,11 +22,8 @@ job_script_content = f"""#!/bin/bash
 #SBATCH --ntasks-per-node=52
 #SBATCH --nodes=2
 #SBATCH --time=3:00:00
-#SBATCH --account=hybridpero
+#SBATCH --account=2d1dpero
 #SBATCH --partition=standard
-#SBATCH --mail-type=fail
-#SBATCH --mail-type=end
-#SBATCH --mail-user=gabriel.graf@duke.edu
 
 ulimit -s unlimited
 module load intel-oneapi
