@@ -28,6 +28,14 @@ def symmetrization(output, tol, no_primitive):
 
   atoms.write(output, format='aims')
   print(f"Symmetrized geometry written to {output}")
+  write_metadata(sga, output, tol, no_primitive)
+
+def write_metadata(sga, output, tol, no_primitive):
+  with open(output, 'a') as f:
+    f.write('\n# Symmetry Refinement Metadata\n')
+    f.write(f"# Space Group Found: {sga.get_space_group_number()} ({sga.get_space_group_symbol()})\n")
+    f.write(f'# Tolerance: {tol}\n')
+    f.write(f'# Converted to Primitive Cell: {"No" if no_primitive else "Yes"}\n')
 
 if __name__ == '__main__':
   symmetrization()
