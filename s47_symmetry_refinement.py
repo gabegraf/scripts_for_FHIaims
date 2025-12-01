@@ -39,7 +39,7 @@ def symmetrization(output, tol, primitive, niggli):
 
 
 def write_metadata(sga_og, output, tol, primitive, niggli):
-    with open("symmetry_refinement_metadata.txt", "a") as f:
+    with open("symmetry_refinement_metadata.txt", "w") as f:
         f.write("\n# Symmetry Refinement Metadata\n")
         f.write(
             f"# Space Group Found: {sga_og.get_space_group_number()} ({sga_og.get_space_group_symbol()})\n"
